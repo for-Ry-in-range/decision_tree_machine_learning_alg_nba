@@ -5,7 +5,7 @@ def preprocess_data(nba_data):
     x = nba_data.drop(columns=['name', 'target_5yrs']).values  # Remove target and name columns
     
     # Randomly shuffle row order
-    rows_indices = np.arrange(x.shape[0])
+    rows_indices = np.arange(x.shape[0])
     np.random.shuffle(rows_indices)
 
     # Switch rows into shuffled order
