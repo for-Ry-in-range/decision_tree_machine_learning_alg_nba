@@ -64,13 +64,14 @@ def dfs_train(x, y, cur_node, data_set_size):
 
     min_feature_entropy = 1.1
     feature = None
-    min_feat_a_rows = None
-    min_feat_b_rows = None
-    min_feat_c_rows = None
-    min_feat_d_rows = None
-    min_feat_a_b_rows = None
-    min_feat_c_d_rows = None
-
+    min_feat_a_x = None
+    min_feat_b_x = None
+    min_feat_c_x = None
+    min_feat_d_x = None
+    min_feat_a_y = None
+    min_feat_b_y = None
+    min_feat_c_y = None
+    min_feat_d_y = None
     # Check information gain of each column
     for col in x.columns:
         # Split into two parts
@@ -111,12 +112,14 @@ def dfs_train(x, y, cur_node, data_set_size):
         if cur_feature_entropy < min_feature_entropy:
             feature = col
             min_feature_entropy = cur_feature_entropy
-            min_feat_a_rows = a_rows
-            min_feat_b_rows = b_rows
-            min_feat_c_rows = c_rows
-            min_feat_d_rows = d_rows
-            min_feat_a_b_rows = a_b_rows
-            min_feat_c_d_rows = c_d_rows
+            min_feat_a_x = a_x
+            min_feat_b_x = b_x
+            min_feat_c_x = c_x
+            min_feat_d_x = d_x
+            min_feat_a_y = a_y
+            min_feat_b_y = b_y
+            min_feat_c_y = c_y
+            min_feat_d_y = d_y
 
     # Set current node's values
     cur_node.feature = feature
@@ -125,17 +128,14 @@ def dfs_train(x, y, cur_node, data_set_size):
     cur_node.child_c = TreeNode()
     cur_node.child_d = TreeNode()
 
-    # Remove this feature
-    a_b_x = x[min_feat_a_b_rows]
-    c_d_x = x[min_feat_c_d_rows]
-    a_b_y = y[min_feat_a_b_rows]
-    c_d_y = y[min_feat_c_d_rows]
-    inputs = [a_b_x[min_feat_a_rows], a_b_x[min_feat_b_rows], c_d_x[min_feat_c_rows], c_d_x[min_feat_d_rows]]
-    for input in inputs:
-        input.drop(columns=[feature])
+    # Remove this feature from each subset
+    min_feat_a_x = min_feat_a_x.drop(columns=[feature])
+    min_feat_b_x = min_feat_b_x.drop(columns=[feature])
+    min_feat_c_x = min_feat_c_x.drop(columns=[feature])
+    min_feat_d_x = min_feat_d_x.drop(columns=[feature])
 
     # Recursively create the next branches
-    dfs_train(inputs[0], a_b_y[min_feat_a_rows], cur_node.child_a, inputs[0].shape[0])
-    dfs_train(inputs[1], a_b_y[min_feat_b_rows], cur_node.child_b, inputs[1].shape[0])
-    dfs_train(inputs[2], c_d_y[min_feat_c_rows], cur_node.child_c, inputs[2].shape[0])
-    dfs_train(inputs[3], c_d_y[min_feat_d_rows], cur_node.child_d, inputs[3].shape[0])
+    dfs_train(min_feat_a_x, min_feat_a_y, cur_node.child_a, min_feat_a_x.shape[0])
+    dfs_train(min_feat_b_x, min_feat_b_y, cur_node.child_b, min_feat_b_x.shape[0])
+    dfs_train(min_feat_c_x, min_feat_c_y, cur_node.child_c, min_feat_c_x.shape[0])
+    dfs_train(min_feat_d_x, min_feat_d_y, cur_node.child_d, min_feat_d_x.shape[0])
