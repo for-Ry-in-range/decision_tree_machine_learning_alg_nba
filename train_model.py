@@ -4,41 +4,48 @@ from tree_node import TreeNode
 
 
 def decide_split(col, col_name, y):
-    col.sort_values(by=col_name)
-    data_size = y.shape[0]-1
-    min_entropy = 1.1
+    col = col.sort_values(by=col_name).reset_index(drop=True)
+    y = y.reset_index(drop=True)
+    data_size = col.shape[0]
+    min_entropy = float('inf')
     best_midpoint = None
 
     # Go through each midpoint betwen values
-    for i in range(col.shape[0]-1):
+    for i in range(data_size - 1):
         before = col.iloc[i][col_name]
-        after = col.iloc[i+1][col_name]
+        after = col.iloc[i + 1][col_name]
         mid = (before + after) / 2
 
-        entropy = None
-        greater_than = 0
-        less_than_yes = 0
-        greater_than_yes = 0
+        # Get indices
+        greater_idx = col[col[col_name] >= mid].index
+        less_idx = col[col[col_name] < mid].index
 
-        # Get entropy for this midpoint
-        for j in range(col.shape[0]):
-            if col.iloc[j][col_name] >= mid:
-                greater_than += 1
-                if y.iloc[j]['target_5yrs'] == 1.0:
-                    greater_than_yes += 1
-            else:
-                if y.iloc[j]['target_5yrs'] == 1.0:
-                    less_than_yes += 1
-            
-            entropy = None
-            if greater_than == 0 or greater_than == data_size:
-                entropy = 0
-            else:
-                entropy = (greater_than/data_size * (-1*(greater_than_yes/greater_than * np.log2(greater_than_yes/greater_than)) + ((1 - greater_than_yes/greater_than) * np.log2(1 - greater_than_yes/greater_than))) + (1-greater_than/data_size) * (-1*(less_than_yes/(data_size-greater_than) * np.log2(less_than_yes/(data_size-greater_than))) + ((1 - less_than_yes/(data_size-greater_than)) * np.log2(1 - less_than_yes/(data_size-greater_than)))))
+        # Counts
+        greater_than = len(greater_idx)
+        less_than = len(less_idx)
+        greater_than_yes = y.loc[greater_idx, 'target_5yrs'].sum()
+        less_than_yes = y.loc[less_idx, 'target_5yrs'].sum()
+
+        # Check division by zero
+        if greater_than == 0 or less_than == 0:
+            entropy = 0
+        else:
+            p_gt = greater_than_yes / greater_than if greater_than > 0 else 0
+            p_lt = less_than_yes / less_than if less_than > 0 else 0
+
+            def entropy_part(p):
+                if p == 0 or p == 1:
+                    return 0
+                return -1 * p * np.log2(p) - (1 - p) * np.log2(1 - p)
+
+            entropy = (greater_than / data_size) * entropy_part(p_gt) + (less_than / data_size) * entropy_part(p_lt)
+
         if entropy < min_entropy:
             min_entropy = entropy
             best_midpoint = mid
-        return best_midpoint
+
+    return best_midpoint
+        
         
 def separate_rows_around_midpoint(midpoint, col, col_name, y):
     # Select rows based on the split
@@ -53,12 +60,13 @@ def calculate_entropy(y):
     for val in y['target_5yrs']:
         if val == 1.0:
             made_5_years += 1
-    if size == 0:
+    if size == 0 or made_5_years == 0 or 1-made_5_years/size == 0:
         return 0
     return -1 * (made_5_years/size * (np.log2(made_5_years/size)) + (1-made_5_years/size) * (np.log2(1-made_5_years/size)))
 
 
-def dfs_train(x, y, cur_node, data_set_size):
+def dfs_train(x, y, cur_node, data_set_size, depth):
+    depth += 1
     if x.shape[1] == 0 or data_set_size == 0:
         return
 
@@ -128,6 +136,9 @@ def dfs_train(x, y, cur_node, data_set_size):
     cur_node.child_c = TreeNode()
     cur_node.child_d = TreeNode()
 
+    if depth == 4:
+        return
+
     # Remove this feature from each subset
     min_feat_a_x = min_feat_a_x.drop(columns=[feature])
     min_feat_b_x = min_feat_b_x.drop(columns=[feature])
@@ -135,7 +146,7 @@ def dfs_train(x, y, cur_node, data_set_size):
     min_feat_d_x = min_feat_d_x.drop(columns=[feature])
 
     # Recursively create the next branches
-    dfs_train(min_feat_a_x, min_feat_a_y, cur_node.child_a, min_feat_a_x.shape[0])
-    dfs_train(min_feat_b_x, min_feat_b_y, cur_node.child_b, min_feat_b_x.shape[0])
-    dfs_train(min_feat_c_x, min_feat_c_y, cur_node.child_c, min_feat_c_x.shape[0])
-    dfs_train(min_feat_d_x, min_feat_d_y, cur_node.child_d, min_feat_d_x.shape[0])
+    dfs_train(min_feat_a_x, min_feat_a_y, cur_node.child_a, min_feat_a_x.shape[0], depth)
+    dfs_train(min_feat_b_x, min_feat_b_y, cur_node.child_b, min_feat_b_x.shape[0], depth)
+    dfs_train(min_feat_c_x, min_feat_c_y, cur_node.child_c, min_feat_c_x.shape[0], depth)
+    dfs_train(min_feat_d_x, min_feat_d_y, cur_node.child_d, min_feat_d_x.shape[0], depth)
