@@ -1,3 +1,5 @@
+import pickle
+
 def save_model(root):
     with open('nba_decision_tree.pkl', 'wb') as f:
         pickle.dump(root, f)

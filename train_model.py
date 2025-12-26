@@ -65,9 +65,18 @@ def calculate_entropy(y):
     return -1 * (made_5_years/size * (np.log2(made_5_years/size)) + (1-made_5_years/size) * (np.log2(1-made_5_years/size)))
 
 
+def make_prediction(y):
+    count_ones = (y['target_5yrs'] == 1.0).sum()
+    count_zeros = (y['target_5yrs'] == 0.0).sum()
+    if count_ones > count_zeros:
+        return 1
+    return 0
+
+
 def dfs_train(x, y, cur_node, data_set_size, depth):
     depth += 1
     if x.shape[1] == 0 or data_set_size == 0:
+        cur_node.prediction = make_prediction(y)
         return
 
     min_feature_entropy = 1.1
@@ -80,6 +89,10 @@ def dfs_train(x, y, cur_node, data_set_size, depth):
     min_feat_b_y = None
     min_feat_c_y = None
     min_feat_d_y = None
+    min_feat_split_1 = None
+    min_feat_split_2 = None
+    min_feat_split_3 = None
+
     # Check information gain of each column
     for col in x.columns:
         # Split into two parts
@@ -128,6 +141,14 @@ def dfs_train(x, y, cur_node, data_set_size, depth):
             min_feat_b_y = b_y
             min_feat_c_y = c_y
             min_feat_d_y = d_y
+            min_feat_split_1 = split_1
+            min_feat_split_2 = split_2
+            min_feat_split_3 = split_3
+
+    # Check if splits are None (not if they're 0, since 0 is a valid split value)
+    if min_feat_split_1 is None or min_feat_split_2 is None or min_feat_split_3 is None:
+        cur_node.prediction = make_prediction(y)
+        return
 
     # Set current node's values
     cur_node.feature = feature
@@ -135,8 +156,15 @@ def dfs_train(x, y, cur_node, data_set_size, depth):
     cur_node.child_b = TreeNode()
     cur_node.child_c = TreeNode()
     cur_node.child_d = TreeNode()
+    cur_node.split_1 = min_feat_split_1
+    cur_node.split_2 = min_feat_split_2
+    cur_node.split_3 = min_feat_split_3
 
     if depth == 4:
+        cur_node.child_a.prediction = make_prediction(min_feat_a_y)
+        cur_node.child_b.prediction = make_prediction(min_feat_b_y)
+        cur_node.child_c.prediction = make_prediction(min_feat_c_y)
+        cur_node.child_d.prediction = make_prediction(min_feat_d_y)
         return
 
     # Remove this feature from each subset

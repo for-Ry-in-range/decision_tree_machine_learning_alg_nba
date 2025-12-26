@@ -3,14 +3,10 @@ import pandas as pd
 
 def preprocess_data(nba_data):
     y = nba_data[['target_5yrs']]  # Target column (DataFrame - using double brackets)
-    x = nba_data.drop(columns=['name', 'target_5yrs', 'fg'])  # Remove unneeded columns
-    
-    # Transform some stats into stats per game
-    for col in ['3p', 'ft']:
-        x[col] = x[col] / x['gp']
+    x = nba_data.drop(columns=['name', 'target_5yrs'])  # Remove unneeded columns
 
-    # Randomly shuffle row order
     rows_indices = np.arange(x.shape[0])
+    np.random.seed(28)  # Seed makes reproducible results
     np.random.shuffle(rows_indices)
 
     # Switch rows into shuffled order; using iloc to keep vars as dataframes

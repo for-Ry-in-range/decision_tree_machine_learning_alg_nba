@@ -1,21 +1,20 @@
-import load_data
-import preprocess_data
-import tree_node
-import train_model
-import pickle
+"""
+Main entry point - shows which scripts to use.
 
-nba_data = load_data.load_data()
+For training:    python3 train.py
+For evaluation:  python3 evaluate.py
+For prediction:  python3 predict.py
+"""
 
-x_train, y_train, x_test, y_test = preprocess_data.preprocess_data(nba_data)
-data_set_size = x_train.shape[0]
-
-dlt = tree_node.TreeNode()
-train_model.dfs_train(x_train, y_train, dlt, data_set_size, 0)
-
-pickle.save_model(save_model(dlt))
-
-model = pickle.load_model()
-
-# Evaluate model
-
-# Make prediction on new data
+print("=" * 60)
+print("NBA Career Predictor - Decision Tree Model")
+print("=" * 60)
+print("\nAvailable scripts:")
+print("  - train.py    - Train a new model")
+print("  - evaluate.py - Evaluate the model")
+print("  - predict.py  - Make predictions on new data")
+print("\nUsage:")
+print("  python3 train.py")
+print("  python3 evaluate.py")
+print("  python3 predict.py <csv_filename>\n")
+print("=" * 60)
