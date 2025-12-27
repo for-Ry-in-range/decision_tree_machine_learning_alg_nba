@@ -40,5 +40,5 @@ for i in range(len(new_player_features)):
     else:
         result = "Less than 5 years"
     
-    print(player_name, result)
+    print(f"{player_name}: {result}")
 

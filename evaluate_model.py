@@ -4,11 +4,13 @@ def evaluate(x, y, root):
 
     def dfs(cur, row, parent_node):
 
-        # If this is the last node in the DLT
-        if not cur.split_1 or not cur.split_2 or not cur.split_3:
-            return cur.prediction
+        # Check if node exists
         if not cur:
-            return parent_node.prediction
+            return parent_node.prediction if parent_node else 0
+        
+        # If this is a leaf node
+        if cur.split_1 is None or cur.split_2 is None or cur.split_3 is None:
+            return cur.prediction
 
         if row[cur.feature] < cur.split_1:
             return dfs(cur.child_a, row, cur)
@@ -33,12 +35,17 @@ def predict_single(root, row):
     Make a prediction for one row of rookie data
     """
     def dfs(cur, row, parent_node):
-        
-        # If this is the last node in the DLT
-        if not cur.split_1 or not cur.split_2 or not cur.split_3:
-            return cur.prediction
+
+        # Check if node exists
         if not cur:
-            return parent_node.prediction
+            if parent_node:
+                return parent_node.prediction
+            else:
+                return 0
+        
+        # If this is a leaf node
+        if cur.split_1 is None or cur.split_2 is None or cur.split_3 is None:
+            return cur.prediction
 
         if row[cur.feature] < cur.split_1:
             return dfs(cur.child_a, row, cur)

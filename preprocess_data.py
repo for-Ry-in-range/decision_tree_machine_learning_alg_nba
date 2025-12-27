@@ -3,7 +3,7 @@ import pandas as pd
 
 def preprocess_data(nba_data):
     y = nba_data[['target_5yrs']]  # Target column (DataFrame - using double brackets)
-    x = nba_data.drop(columns=['name', 'target_5yrs'])  # Remove unneeded columns
+    x = nba_data.drop(columns=['name', 'target_5yrs', 'fg'])
 
     rows_indices = np.arange(x.shape[0])
     np.random.seed(28)  # Seed makes reproducible results
