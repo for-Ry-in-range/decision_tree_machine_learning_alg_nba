@@ -7,4 +7,5 @@ A decision tree machine learning algorithm and model built from scrath. The ML m
 - Decision tree algorithm built from scratch (no scikit-learn)
 - Core algorithms: entropy, information gain, recursive tree building
 - Modular code structure for maintainability
+- Achieved 70.6% accuracy
 - Feature importance analysis
